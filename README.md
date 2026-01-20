@@ -1,4 +1,4 @@
-Quick Start Guide
+## Quick Start Guide
 
 Get your fashion retrieval system running in 5 minutes!
 
@@ -202,3 +202,4 @@ Ready to search! 🚀
 Start with:
 
 python test_queries.py --mode all
+
