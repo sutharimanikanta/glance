@@ -1,204 +1,50 @@
-Quick Start Guide
+# 👗 Multimodal Fashion & Context Retrieval
+### Glance ML Internship Assignment
 
-Get your fashion retrieval system running in 5 minutes!
+This project implements an intelligent **multimodal image retrieval system** that retrieves fashion images based on **natural language queries**. The system understands not only *what* a person is wearing, but also *where* they are and the *style/vibe* of the outfit.
 
-📋 Prerequisites
+The solution focuses on **ML logic, compositional reasoning, and fashion-specific retrieval**, going beyond a vanilla CLIP-based approach.
 
-Python 3.8+
+---
 
-CUDA-capable GPU (optional, but recommended)
+## 📌 Problem Statement
 
-Fashion image dataset (e.g., DeepFashion, Fashionpedia)
+Given a natural language query such as:
+- *"A red tie and a white shirt in a formal setting"*
+- *"Casual weekend outfit for a city walk"*
 
-🚀 Installation
-# Clone or download the repository
-cd fashion-retrieval
+the system retrieves the **top-k most relevant images** from a diverse fashion dataset, accounting for:
+- Clothing attributes
+- Color composition
+- Context / environment
+- Style and intent
 
-# Install dependencies
-pip install -r requirements.txt
+---
 
-📁 Prepare Your Dataset
+## 📂 Dataset
 
-Organize your images in a single directory:
+A dataset of **500–1,000 fashion images** was sourced/simulated with variations across three axes:
 
-/path/to/images/
-  ├── 94876f5333d96f8ef.jpg
-  ├── 17683e4a33b5c1906.jpg
-  ├── 3cd210ef2b3843e00248c42ff78edb2e.jpg
-  └── ...
+### 1️⃣ Environment
+- Office interiors
+- Urban streets
+- Parks
+- Home settings
 
-🔨 Build Index
-python indexer/build_index.py \
-    --image_dir /path/to/images \
-    --output_dir ./index_data \
-    --batch_size 8
+### 2️⃣ Clothing Types
+- Formal (blazers, button-downs, ties)
+- Casual (t-shirts, hoodies)
+- Outerwear (jackets, raincoats)
 
+### 3️⃣ Color Palette
+- Wide range of garment colors
+- Multi-color compositions (e.g., shirt + pants + accessories)
 
-Expected output:
+Datasets such as **Fashionpedia** were used as reference for annotation and attribute diversity.
 
-Loading CLIP model on cuda...
-Pre-computing attribute prompt embeddings...
-  color: 80 prompts encoded
-  clothing: 69 prompts encoded
-  environment: 18 prompts encoded
-  style: 27 prompts encoded
+---
 
-Found 10000 images
-Encoding images...
-100%|████████████████| 10000/10000 [15:23<00:00, 10.83it/s]
+## 🧠 System Architecture
 
-Building FAISS index...
-Index built with 10000 vectors
+The solution is divided into **two clear ML workflows**, implemented modularly in a single repository.
 
-✓ Index saved to ./index_data
-  - faiss_index.bin: 10000 vectors
-  - metadata.pkl: 10000 images
-
-
-Time estimate: ~1 second per image on GPU, ~3 seconds on CPU
-
-🔍 Search Images
-Command Line
-python retriever/retrieve.py \
-    --query "red shirt with blue pants" \
-    --index_dir ./index_data \
-    --top_k 10
-
-Python API
-from retriever.retrieve import FashionRetriever
-
-# Initialize (loads index once)
-retriever = FashionRetriever(index_dir="./index_data")
-
-# Search
-results = retriever.retrieve(
-    query="professional business attire in office",
-    top_k=10
-)
-
-# Print results
-retriever.print_results(results)
-
-Flask API
-# Start server
-python app.py
-
-# In another terminal, search via API
-curl -X POST http://localhost:5000/search \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "casual weekend outfit for a city walk",
-    "top_k": 5
-  }'
-
-🧪 Run Tests
-# Test all evaluation queries
-python test_queries.py --mode all
-
-# Test custom weight configurations
-python test_queries.py --mode weights
-
-# Analyze query parsing
-python test_queries.py --mode parsing
-
-📊 Example Queries
-
-Try these queries to see attribute-aware retrieval in action:
-
-queries = [
-    "A person in a bright yellow raincoat",
-    "Professional business attire inside a modern office",
-    "Someone wearing a blue shirt sitting on a park bench",
-    "Casual weekend outfit for a city walk",
-    "A red tie and a white shirt in a formal setting",
-    "Elegant black dress at a restaurant",
-    "Sporty outfit for running in the park",
-    "Beige coat and brown boots in autumn"
-]
-
-🎛️ Custom Scoring Weights
-
-Adjust attribute importance based on your use case:
-
-# Emphasize color matching
-results = retriever.retrieve(
-    query="red dress",
-    weights={
-        "global": 0.3,
-        "color": 0.5,
-        "clothing": 0.15,
-        "environment": 0.05
-    }
-)
-
-# Emphasize environment/context
-results = retriever.retrieve(
-    query="outfit for beach vacation",
-    weights={
-        "global": 0.4,
-        "color": 0.1,
-        "clothing": 0.2,
-        "environment": 0.3
-    }
-)
-
-📈 Performance Expectations
-Dataset Size	Indexing Time (GPU)	Query Time	Memory Usage
-1K images	~2 minutes	<10 ms	~200 MB
-10K images	~20 minutes	<15 ms	~500 MB
-100K images	~3 hours	<20 ms	~2 GB
-1M images	~30 hours	<30 ms	~4 GB
-🐛 Troubleshooting
-Out of Memory During Indexing
-# Reduce batch size
-python indexer/build_index.py \
-    --image_dir /path/to/images \
-    --batch_size 4
-
-Slow Indexing on CPU
-# Use smaller CLIP model
-# Edit indexer/image_encoder.py:
-# model_name = "openai/clip-vit-base-patch16"
-
-Flask API Not Responding
-# Check if running
-curl http://localhost:5000/health
-
-# Expected response:
-# {"status": "healthy", "num_images": 10000}
-
-📝 Next Steps
-
-Experiment with complex multi-attribute queries
-
-Tune scoring weights based on your dataset
-
-Add custom attributes in attribute_prompts.py
-
-Evaluate performance against vanilla CLIP
-
-💡 Tips for Best Results
-
-Use high-quality, well-lit fashion images
-
-Be specific in queries (e.g., “red blazer in office”)
-
-Increase color weight for color-focused queries
-
-Include context like environment when possible
-
-📚 Further Reading
-
-README.md
- — Full technical documentation
-
-CLIP Paper
- — Understanding CLIP
-
-Fashionpedia
- — Fashion attribute taxonomy
-
-Ready to search! 🚀
-Start with:
-
-python test_queries.py --mode all
